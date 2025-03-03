@@ -10,8 +10,8 @@ app.use(express.static('public'));
 
 const db = new pg.Client({
 
-  user: "postgres", 
-  host: "localhost", 
+  user: "postgres",
+  host: "localhost",
   database: "parmalist",
   password: "12345",
   port: 5432
@@ -20,74 +20,39 @@ const db = new pg.Client({
 
 db.connect();
 
-async function getItems() {
-  
-  const result = await db.query("SELECT * FROM items");
-  let items = [];
-  items = result.rows;
-  return items;
-
-}
-
 app.get('/', async (req, res) => {
-  
-  const items = await getItems();
-  res.render('index.ejs', {listTitle: "Today", listItems: items});
+
+  const result = await db.query("SELECT * FROM items");
+  let item = [];
+  item = result.rows;
+  res.render('index.ejs', {listItems: item, listTitle: "Today"});
 
 });
 
-// add items 
 app.post('/add', async (req, res) => {
   
-  const newItems = req.body.newItem;
-  
-  try { 
+  const newItem = req.body.newItem;
 
-    await db.query("INSERT INTO items(title) VALUES($1)", [newItems]);
-    res.redirect('/');
-
-  } catch (err) {
-    
-    console.log(err);
-
-  }
+  await db.query("INSERT INTO items(title) VALUES($1)", [newItem]);
+  res.redirect('/');
 
 });
 
-// update items
 app.post('/edit', async (req, res) => {
   
-  const id = req.body.updatedItemId;
-  const item = req.body.updatedItemTitle;
+  const editedItemTitle = req.body.updatedItemTitle;
+  const editedItemId = req.body.updatedItemId;
 
-  try {
-    
-    await db.query("UPDATE items SET title = $1 WHERE id = $2", [item, id]);
-    res.redirect('/');
-
-  } catch (err) {
-    
-    console.log(err);
-
-  }
+  await db.query("UPDATE items SET title = $1 WHERE id = $2", [editedItemTitle, editedItemId]);
+  res.redirect('/');
 
 });
 
-// delete items 
 app.post('/delete', async (req, res) => {
   
-  const id = req.body.deleteItemId;
-
-  try { 
-
-    await db.query("DELETE FROM items WHERE id = $1", [id]);
-    res.redirect('/');
-
-  } catch (err) {
-    
-    console.log(err);
-
-  }
+  const deleteItem = req.body.deleteItemId;
+  const result = await db.query("DELETE FROM items WHERE id = $1", [deleteItem]);
+  res.redirect('/');
 
 });
 
@@ -95,4 +60,4 @@ app.listen(port, () => {
 
   console.log(`Server is started on ${port} port`);
 
-});
+})
